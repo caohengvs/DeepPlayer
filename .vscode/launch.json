@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "examples",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bin",
+            "environment": [],
+            "console": "integratedTerminal",
+            "visualizerFile": "${workspaceFolder}/qt6.natvis",
+            "symbolOptions": {
+                "searchPaths": [
+                    "D:/QtDevelop/qt6.10/6.10.1/msvc2022_64/bin",
+                    // "C:/Qt/Qt5.12.12/5.12.12/msvc2017_64/debug_info/msvc2017_64/lib"
+                ],
+                "searchMicrosoftSymbolServer": false
+            },
+            "sourceFileMap": {
+                "C:/Users/qt/work/qt": "D:/QtDevelop/qt6.10/6.10.1/Src"
+            }
+        }
+    ]
+}
