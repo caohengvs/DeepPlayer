@@ -1,10 +1,16 @@
-project(examples)
-add_executable(${PROJECT_NAME} WIN32 main.cpp)
+project(DeepPlayer VERSION 1.0 LANGUAGES CXX)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+file(GLOB SOURCES "src/*.cpp" "include/*.h" "include/*.hpp")
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/include include)
+target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/lib)
 find_package(Qt6 COMPONENTS Widgets Core Gui REQUIRED)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/include)
-target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui "$<IF:$<CONFIG:Debug>,HzLoggerd,HzLogger>")
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui  "$<IF:$<CONFIG:Debug>,HzLoggerd,HzLogger>")
 
 set(PROJECT_DESTINATION_DIR ${CMAKE_SOURCE_DIR})
 

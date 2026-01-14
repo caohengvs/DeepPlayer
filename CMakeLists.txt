@@ -6,4 +6,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(DeepPlayer VERSION 0.1.0 LANGUAGES C CXX)
 add_subdirectory(HzLogger)
-add_subdirectory(examples)
+add_subdirectory(HzApp)
+# add_subdirectory(examples)
