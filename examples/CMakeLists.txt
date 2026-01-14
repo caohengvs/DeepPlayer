@@ -26,6 +26,5 @@ if(WIN32)
         )
     else()
         message(WARNING "未找到 windeployqt。部署可能需要手动步骤。")
-
     endif()
 endif()
