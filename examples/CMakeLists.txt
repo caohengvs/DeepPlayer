@@ -13,6 +13,7 @@ if(WIN32)
         RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_DESTINATION_DIR}/bin
         OUTPUT_NAME "$<IF:$<CONFIG:Debug>,${PROJECT_NAME}d,${PROJECT_NAME}>"
     )
+    set(OUTPUT_NAME "$<IF:$<CONFIG:Debug>,${PROJECT_NAME}d,${PROJECT_NAME}>")
 
     find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt PATHS ${Qt6_ROOT}/bin)
     if(WINDEPLOYQT_EXECUTABLE)
@@ -21,7 +22,7 @@ if(WIN32)
             TARGET ${PROJECT_NAME}
             POST_BUILD
             COMMAND "${WINDEPLOYQT_EXECUTABLE}"
-            ${PROJECT_DESTINATION_DIR}/bin
+            ${PROJECT_DESTINATION_DIR}/bin/${OUTPUT_NAME}.exe
         )
     else()
         message(WARNING "未找到 windeployqt。部署可能需要手动步骤。")
