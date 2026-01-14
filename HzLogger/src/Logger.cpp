@@ -47,7 +47,7 @@ Logger::Logger()
 
 Logger::~Logger() = default;
 
-Logger& Logger::getInstance()
+Logger& Logger::s_GetInstance()
 {
     if (m_pInstance)
         return *m_pInstance;
@@ -57,7 +57,7 @@ Logger& Logger::getInstance()
     return *m_pInstance;
 }
 
-void Logger::deleteInstance()
+void Logger::s_DeleteInstance()
 {
     if (!m_pInstance)
         return;
@@ -67,7 +67,7 @@ void Logger::deleteInstance()
     m_pInstance = nullptr;
 }
 
-void Logger::init(const std::string& loggerName, Logger::LogLevel level, bool enableConsole, bool isSync,
+void Logger::Init(const std::string& loggerName, Logger::LogLevel level, bool enableConsole, bool isSync,
                   const std::string& filePath, size_t maxFileSize, size_t maxFiles)
 {
     if (pimpl_->logger_)
@@ -200,37 +200,37 @@ Logger::LogStream& Logger::LogStream::operator<<(const char* str)
     return *this;
 }
 
-Logger::LogStream Logger::log(LogLevel eLevel, const char* file, int line, const char* func)
+Logger::LogStream Logger::Log(LogLevel eLevel, const char* file, int line, const char* func)
 {
     return LogStream(eLevel, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::trace(const char* file, int line, const char* func)
+Logger::LogStream Logger::Trace(const char* file, int line, const char* func)
 {
     return LogStream(TRACE_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::debug(const char* file, int line, const char* func)
+Logger::LogStream Logger::Debug(const char* file, int line, const char* func)
 {
     return LogStream(DEBUG_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::info(const char* file, int line, const char* func)
+Logger::LogStream Logger::Info(const char* file, int line, const char* func)
 {
     return LogStream(INFO_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::warn(const char* file, int line, const char* func)
+Logger::LogStream Logger::Warn(const char* file, int line, const char* func)
 {
     return LogStream(WARN_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::error(const char* file, int line, const char* func)
+Logger::LogStream Logger::Error(const char* file, int line, const char* func)
 {
     return LogStream(ERROR_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::critical(const char* file, int line, const char* func)
+Logger::LogStream Logger::Critical(const char* file, int line, const char* func)
 {
     return LogStream(CRITICAL_L, pimpl_.get(), file, line, func);
 }

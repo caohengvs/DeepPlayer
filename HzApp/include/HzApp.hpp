@@ -7,5 +7,8 @@ public:
     ~HzApp();
 
 private:
+    void initLogger();
+
+private:
     bool m_isQuit;
 };

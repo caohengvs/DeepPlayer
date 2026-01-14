@@ -46,22 +46,22 @@ public:
         OFF_L
     };
 
-    static Logger& getInstance();
-    static void deleteInstance();
+    static Logger& s_GetInstance();
+    static void s_DeleteInstance();
 
-    void init(const std::string& loggerName = "console", LogLevel level = INFO_L, bool enableConsole = true,
+    void Init(const std::string& loggerName = "console", LogLevel level = INFO_L, bool enableConsole = true,
               bool isSync = false, const std::string& filePath = "", size_t maxFileSize = 1048576 * 5,
               size_t maxFiles = 3);
 
     class LogStream;
 
-    LogStream log(LogLevel eLevel, const char* file, int line, const char* func);
-    LogStream trace(const char* file, int line, const char* func);
-    LogStream debug(const char* file, int line, const char* func);
-    LogStream info(const char* file, int line, const char* func);
-    LogStream warn(const char* file, int line, const char* func);
-    LogStream error(const char* file, int line, const char* func);
-    LogStream critical(const char* file, int line, const char* func);
+    LogStream Log(LogLevel eLevel, const char* file, int line, const char* func);
+    LogStream Trace(const char* file, int line, const char* func);
+    LogStream Debug(const char* file, int line, const char* func);
+    LogStream Info(const char* file, int line, const char* func);
+    LogStream Warn(const char* file, int line, const char* func);
+    LogStream Error(const char* file, int line, const char* func);
+    LogStream Critical(const char* file, int line, const char* func);
 
 private:
     void initSync(std::vector<spdlog::sink_ptr>, const std::string&, LogLevel);
@@ -110,12 +110,12 @@ private:
 };
 #pragma warning(pop)  // Re-enable C4251
 
-#define INIT_LOGGER(...) Logger::getInstance().init(__VA_ARGS__)
-#define DELETE_LOGGER(...) Logger::deleteInstance()
+#define INIT_LOGGER(...) Logger::s_GetInstance().init(__VA_ARGS__)
+#define DELETE_LOGGER(...) Logger::s_DeleteInstance()
 
-#define LOG_TRACE Logger::getInstance().trace(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_DEBUG Logger::getInstance().debug(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_INFO Logger::getInstance().info(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_WARN Logger::getInstance().warn(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_ERROR Logger::getInstance().error(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_CRITICAL Logger::getInstance().critical(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_TRACE Logger::s_GetInstance().trace(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_DEBUG Logger::s_GetInstance().debug(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_INFO Logger::s_GetInstance().info(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_WARN Logger::s_GetInstance().warn(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_ERROR Logger::s_GetInstance().error(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_CRITICAL Logger::s_GetInstance().critical(__FILE__, __LINE__, __FUNCTION__)

@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO DEBUG)
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL DEBUG)
+
+# 如果有依赖项，在这里添加
+# find_dependency(SomeRequiredPackage 1.0)
+
+include("${CMAKE_CURRENT_LIST_DIR}/HzUtilsTargets.cmake")
+check_required_components(HzUtils)
