@@ -4,6 +4,7 @@ file(GLOB SOURCES "src/*.cpp")
 add_library(${PROJECT_NAME} SHARED
     ${SOURCES}
 )
+target_compile_definitions(${PROJECT_NAME} PRIVATE __STDC_CONSTANT_MACROS)
 find_package(FFMPEG REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
