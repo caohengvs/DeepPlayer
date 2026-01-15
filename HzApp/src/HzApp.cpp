@@ -3,36 +3,38 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
-#include "Logger.hpp"
+#include "HzLogger.hpp"
 #include "HzUtils.hpp"
+#include "HzEngine.hpp"
 
 HzApp::HzApp(int& argc, char** argv)
     : QApplication(argc, argv)
 {
     setApplicationName("DeepPlayer");
     initLogger();
-
+    HzEngine engine;
+    engine.Init("test.mkv");
     qInfo() << "Starting DeepPlayer";
 }
 
 HzApp::~HzApp()
 {
     qInfo() << "Stopping DeepPlayer";
-    Logger::s_DeleteInstance();
+    HzLogger::s_DeleteInstance();
 }
 
 void HzApp::initLogger()
 {
-    auto& loggger = Logger::s_GetInstance();
+    auto& loggger = HzLogger::s_GetInstance();
 
     std::ostringstream oss;
     oss << "logs/system_" << HzUtils::GetTime().c_str() << ".log";
 
-    loggger.Init("DeepPlayer", Logger::DEBUG_L, true, false, oss.str());
+    loggger.Init("DeepPlayer", HzLogger::DEBUG_L, true, false, oss.str());
     qInstallMessageHandler(
         [](QtMsgType type, const QMessageLogContext& context, const QString& msg)
         {
-            auto& logger = Logger::s_GetInstance();
+            auto& logger = HzLogger::s_GetInstance();
 
             switch (type)
             {

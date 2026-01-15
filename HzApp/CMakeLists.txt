@@ -7,11 +7,28 @@ set(CMAKE_AUTOUIC ON)
 file(GLOB SOURCES "src/*.cpp" "include/*.h" "include/*.hpp")
 file(GLOB_RECURSE RESOURCES "*.qrc")
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${RESOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/include ${CMAKE_SOURCE_DIR}/HzUtils/include include)
-target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/HzLogger/lib ${CMAKE_SOURCE_DIR}/HzUtils/lib)
+target_include_directories(${PROJECT_NAME} PRIVATE
+    include
+    ${CMAKE_SOURCE_DIR}/HzLogger/include
+    ${CMAKE_SOURCE_DIR}/HzUtils/include
+    ${CMAKE_SOURCE_DIR}/HzEngine/include
+)
+
+target_link_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/HzLogger/lib
+    ${CMAKE_SOURCE_DIR}/HzUtils/lib
+    ${CMAKE_SOURCE_DIR}/HzEngine/lib
+)
 find_package(Qt6 COMPONENTS Widgets Core Gui REQUIRED)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui  "$<IF:$<CONFIG:Debug>,HzLoggerd,HzLogger>" "$<IF:$<CONFIG:Debug>,HzUtilsd,HzUtils>")
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Qt6::Widgets
+    Qt6::Core
+    Qt6::Gui
+    "$<IF:$<CONFIG:Debug>,HzLoggerd,HzLogger>"
+    "$<IF:$<CONFIG:Debug>,HzUtilsd,HzUtils>"
+    "$<IF:$<CONFIG:Debug>,HzEngined,HzEngine>"
+    )
 
 set(PROJECT_DESTINATION_DIR ${CMAKE_SOURCE_DIR})
 

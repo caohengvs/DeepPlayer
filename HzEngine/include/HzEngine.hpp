@@ -7,16 +7,20 @@
  * @version: 1.0
  * @email: caohengvs888@gmail.com
  */
+#include <memory>
 #include <string_view>
+#include "ExportDef.h"
 
-class HzEngine
+class CMedia;
+
+class  HZ_LIB_API HzEngine
 {
 public:
     HzEngine();
     ~HzEngine();
 
-public: 
-    bool Play(const std::string_view& filename);
+public:
+    bool Init(std::string_view filename);
     void Pause();
     void Stop();
     void SeekPos(float position);
@@ -24,4 +28,6 @@ public:
     void SetSpeed(float speed);
     void SetLoop(bool loop);
 
+private:
+    CMedia* m_pMedia{nullptr};
 };

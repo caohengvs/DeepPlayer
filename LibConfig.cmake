@@ -14,7 +14,7 @@ endif()
 
 # 检查生成的配置文件是否存在
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in")
-    message(STATUS ${PROJECT_NAME} "配置文件存在，此库具备独立发布能力")
+    message(STATUS ${PROJECT_NAME} ":此库具备独立发布能力")
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)

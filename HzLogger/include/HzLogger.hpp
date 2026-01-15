@@ -1,5 +1,5 @@
 /**
- * @file: Logger.hpp
+ * @file: HzLogger.hpp
  * @brief: 基于spdlog封装的日志记录器
  * @author: Curtis Cao
  * @date: 2025-07-16 14:07:09
@@ -21,7 +21,7 @@ namespace sinks
 class sink;
 }
 using sink_ptr = std::shared_ptr<sinks::sink>;
-class logger;
+class HzLogger;
 namespace level
 {
 enum level_enum : int;
@@ -32,7 +32,7 @@ enum level_enum : int;
 #pragma warning(disable : 4251)  // Disable C4251 for the following code block
 struct LoggerImpl;
 
-class HZ_LIB_API Logger
+class HZ_LIB_API HzLogger
 {
 public:
     enum LogLevel
@@ -46,7 +46,7 @@ public:
         OFF_L
     };
 
-    static Logger& s_GetInstance();
+    static HzLogger& s_GetInstance();
     static void s_DeleteInstance();
 
     void Init(const std::string& loggerName = "console", LogLevel level = INFO_L, bool enableConsole = true,
@@ -68,24 +68,24 @@ private:
     void initAsync(std::vector<spdlog::sink_ptr>, const std::string&, LogLevel);
 
 private:
-    Logger();
-    ~Logger();
+    HzLogger();
+    ~HzLogger();
 
-    Logger(const Logger&) = delete;
-    Logger& operator=(const Logger&) = delete;
+    HzLogger(const HzLogger&) = delete;
+    HzLogger& operator=(const HzLogger&) = delete;
 
-    Logger(Logger&&) = delete;
-    Logger& operator=(Logger&&) = delete;
+    HzLogger(HzLogger&&) = delete;
+    HzLogger& operator=(HzLogger&&) = delete;
 
     std::unique_ptr<LoggerImpl> pimpl_;
-    static inline Logger* m_pInstance = nullptr;
+    static inline HzLogger* m_pInstance = nullptr;
     static inline std::mutex m_mtxCreate;
 
     friend class LogStream;
 };
 
 struct LogStreamImpl;
-class HZ_LIB_API Logger::LogStream
+class HZ_LIB_API HzLogger::LogStream
 {
 public:
     LogStream(LogLevel level, LoggerImpl* loggerImpl, const char* file = nullptr, int line = 0,
@@ -110,12 +110,12 @@ private:
 };
 #pragma warning(pop)  // Re-enable C4251
 
-#define INIT_LOGGER(...) Logger::s_GetInstance().init(__VA_ARGS__)
-#define DELETE_LOGGER(...) Logger::s_DeleteInstance()
+#define INIT_LOGGER(...) HzLogger::s_GetInstance().init(__VA_ARGS__)
+#define DELETE_LOGGER(...) HzLogger::s_DeleteInstance()
 
-#define LOG_TRACE Logger::s_GetInstance().trace(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_DEBUG Logger::s_GetInstance().debug(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_INFO Logger::s_GetInstance().info(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_WARN Logger::s_GetInstance().warn(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_ERROR Logger::s_GetInstance().error(__FILE__, __LINE__, __FUNCTION__)
-#define LOG_CRITICAL Logger::s_GetInstance().critical(__FILE__, __LINE__, __FUNCTION__)
+#define LOG_TRACE HzLogger::s_GetInstance().Trace(__FILE__, __LINE__, __func__)
+#define LOG_DEBUG HzLogger::s_GetInstance().Debug(__FILE__, __LINE__, __func__)
+#define LOG_INFO HzLogger::s_GetInstance().Info(__FILE__, __LINE__, __func__)
+#define LOG_WARN HzLogger::s_GetInstance().Warn(__FILE__, __LINE__, __func__)
+#define LOG_ERROR HzLogger::s_GetInstance().Error(__FILE__, __LINE__, __func__)
+#define LOG_CRITICAL HzLogger::s_GetInstance().Critical(__FILE__, __LINE__, __func__)

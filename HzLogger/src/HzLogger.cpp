@@ -1,4 +1,4 @@
-#include "Logger.hpp"
+#include "HzLogger.hpp"
 #include <spdlog/async.h>
 #include <spdlog/sinks/msvc_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -12,23 +12,23 @@ struct LoggerImpl
 {
     std::shared_ptr<spdlog::logger> logger_;
 
-    static spdlog::level::level_enum mapLogLevel(Logger::LogLevel level)
+    static spdlog::level::level_enum mapLogLevel(HzLogger::LogLevel level)
     {
         switch (level)
         {
-            case Logger::TRACE_L:
+            case HzLogger::TRACE_L:
                 return spdlog::level::trace;
-            case Logger::DEBUG_L:
+            case HzLogger::DEBUG_L:
                 return spdlog::level::debug;
-            case Logger::INFO_L:
+            case HzLogger::INFO_L:
                 return spdlog::level::info;
-            case Logger::WARN_L:
+            case HzLogger::WARN_L:
                 return spdlog::level::warn;
-            case Logger::ERROR_L:
+            case HzLogger::ERROR_L:
                 return spdlog::level::err;
-            case Logger::CRITICAL_L:
+            case HzLogger::CRITICAL_L:
                 return spdlog::level::critical;
-            case Logger::OFF_L:
+            case HzLogger::OFF_L:
                 return spdlog::level::off;
             default:
                 return spdlog::level::info;
@@ -40,24 +40,24 @@ struct LoggerImpl
     ~LoggerImpl() = default;
 };
 
-Logger::Logger()
+HzLogger::HzLogger()
     : pimpl_(std::make_unique<LoggerImpl>())
 {
 }
 
-Logger::~Logger() = default;
+HzLogger::~HzLogger() = default;
 
-Logger& Logger::s_GetInstance()
+HzLogger& HzLogger::s_GetInstance()
 {
     if (m_pInstance)
         return *m_pInstance;
 
     std::lock_guard lock(m_mtxCreate);
-    m_pInstance = new Logger;
+    m_pInstance = new HzLogger;
     return *m_pInstance;
 }
 
-void Logger::s_DeleteInstance()
+void HzLogger::s_DeleteInstance()
 {
     if (!m_pInstance)
         return;
@@ -67,7 +67,7 @@ void Logger::s_DeleteInstance()
     m_pInstance = nullptr;
 }
 
-void Logger::Init(const std::string& loggerName, Logger::LogLevel level, bool enableConsole, bool isSync,
+void HzLogger::Init(const std::string& loggerName, HzLogger::LogLevel level, bool enableConsole, bool isSync,
                   const std::string& filePath, size_t maxFileSize, size_t maxFiles)
 {
     if (pimpl_->logger_)
@@ -90,7 +90,7 @@ void Logger::Init(const std::string& loggerName, Logger::LogLevel level, bool en
         initAsync(sinks, loggerName, level);
 }
 
-void Logger::initSync(std::vector<spdlog::sink_ptr> sinks, const std::string& loggerName, LogLevel level)
+void HzLogger::initSync(std::vector<spdlog::sink_ptr> sinks, const std::string& loggerName, LogLevel level)
 {
     if (sinks.empty())
     {
@@ -112,7 +112,7 @@ void Logger::initSync(std::vector<spdlog::sink_ptr> sinks, const std::string& lo
     pimpl_->logger_->flush_on(LoggerImpl::mapLogLevel(level));
 }
 
-void Logger::initAsync(std::vector<spdlog::sink_ptr> sinks, const std::string& loggerName, LogLevel level)
+void HzLogger::initAsync(std::vector<spdlog::sink_ptr> sinks, const std::string& loggerName, LogLevel level)
 {
     if (sinks.empty())
     {
@@ -141,14 +141,14 @@ void Logger::initAsync(std::vector<spdlog::sink_ptr> sinks, const std::string& l
 
 struct LogStreamImpl
 {
-    Logger::LogLevel level_;
+    HzLogger::LogLevel level_;
     std::ostringstream ss_;
     std::shared_ptr<spdlog::logger> logger_;
     const char* file_;
     int line_;
     const char* func_;
 
-    LogStreamImpl(Logger::LogLevel level, std::shared_ptr<spdlog::logger> logger, const char* file, int line,
+    LogStreamImpl(HzLogger::LogLevel level, std::shared_ptr<spdlog::logger> logger, const char* file, int line,
                   const char* func)
         : level_(level)
         , logger_(std::move(logger))
@@ -160,13 +160,13 @@ struct LogStreamImpl
     ~LogStreamImpl() = default;
 };
 
-Logger::LogStream::LogStream(Logger::LogLevel level, LoggerImpl* loggerImpl, const char* file, int line,
+HzLogger::LogStream::LogStream(HzLogger::LogLevel level, LoggerImpl* loggerImpl, const char* file, int line,
                              const char* func)
     : pimpl_(std::make_unique<LogStreamImpl>(level, loggerImpl->logger_, file, line, func))
 {
 }
 
-Logger::LogStream::~LogStream()
+HzLogger::LogStream::~LogStream()
 {
     if (pimpl_ && pimpl_->logger_)
     {
@@ -176,7 +176,7 @@ Logger::LogStream::~LogStream()
 }
 
 template<typename T>
-Logger::LogStream& Logger::LogStream::operator<<(const T& val)
+HzLogger::LogStream& HzLogger::LogStream::operator<<(const T& val)
 {
     if (pimpl_ && pimpl_->ss_)
     {
@@ -185,13 +185,13 @@ Logger::LogStream& Logger::LogStream::operator<<(const T& val)
     return *this;
 }
 
-Logger::LogStream& Logger::LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
+HzLogger::LogStream& HzLogger::LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
 {
     manip(pimpl_->ss_);
     return *this;
 }
 
-Logger::LogStream& Logger::LogStream::operator<<(const char* str)
+HzLogger::LogStream& HzLogger::LogStream::operator<<(const char* str)
 {
     if (pimpl_ && pimpl_->ss_)
     {
@@ -200,61 +200,61 @@ Logger::LogStream& Logger::LogStream::operator<<(const char* str)
     return *this;
 }
 
-Logger::LogStream Logger::Log(LogLevel eLevel, const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Log(LogLevel eLevel, const char* file, int line, const char* func)
 {
     return LogStream(eLevel, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Trace(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Trace(const char* file, int line, const char* func)
 {
     return LogStream(TRACE_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Debug(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Debug(const char* file, int line, const char* func)
 {
     return LogStream(DEBUG_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Info(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Info(const char* file, int line, const char* func)
 {
     return LogStream(INFO_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Warn(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Warn(const char* file, int line, const char* func)
 {
     return LogStream(WARN_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Error(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Error(const char* file, int line, const char* func)
 {
     return LogStream(ERROR_L, pimpl_.get(), file, line, func);
 }
 
-Logger::LogStream Logger::Critical(const char* file, int line, const char* func)
+HzLogger::LogStream HzLogger::Critical(const char* file, int line, const char* func)
 {
     return LogStream(CRITICAL_L, pimpl_.get(), file, line, func);
 }
 
 // 显式模板实例化
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const char&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const short&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const int&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const long&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const long long&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const unsigned char&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const unsigned short&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const unsigned int&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const unsigned long&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const unsigned long long&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const float&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const double&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const long double&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const bool&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const void* const&);
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const std::string&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const char&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const short&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const int&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const long&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const long long&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const unsigned char&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const unsigned short&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const unsigned int&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const unsigned long&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const unsigned long long&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const float&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const double&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const long double&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const bool&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const void* const&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const std::string&);
 
 // C++17 string_view 支持
 #if __cplusplus >= 201703L
 #include <string_view>
-template HZ_LIB_API Logger::LogStream& Logger::LogStream::operator<<(const std::string_view&);
+template HZ_LIB_API HzLogger::LogStream& HzLogger::LogStream::operator<<(const std::string_view&);
 #endif

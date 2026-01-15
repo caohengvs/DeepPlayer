@@ -1,18 +1,22 @@
 #include "HzEngine.hpp"
+#include "CMedia.hpp"
 
 HzEngine::HzEngine()
 {
-
+    m_pMedia = new CMedia;
 }
 
 HzEngine::~HzEngine()
 {
-
 }
 
-bool HzEngine::Play(const std::string_view& filename)
+bool HzEngine::Init(std::string_view filename)
 {
-    return false;
+    if (m_pMedia == nullptr)
+        return false;
+
+    m_pMedia->Open(filename);
+    return true;
 }
 
 void HzEngine::Pause()
