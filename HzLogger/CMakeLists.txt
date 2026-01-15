@@ -12,4 +12,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
-include(${CMAKE_SOURCE_DIR}/ProjConfig.cmake)
+include(${CMAKE_SOURCE_DIR}/LibConfig.cmake)

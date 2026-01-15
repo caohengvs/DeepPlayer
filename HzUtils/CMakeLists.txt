@@ -9,4 +9,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_HEADER_ONLY)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-include(${CMAKE_SOURCE_DIR}/ProjConfig.cmake)
+include(${CMAKE_SOURCE_DIR}/LibConfig.cmake)

@@ -6,7 +6,8 @@
   "dependencies": [
     "spdlog",
     "gtest",
-    "magic-enum"
+    "magic-enum",
+    "ffmpeg"
   ],
   "overrides": [
     {
@@ -16,6 +17,10 @@
     {
       "name": "gtest",
       "version": "1.13.0"
+    },
+    {
+      "name": "ffmpeg",
+      "version":"7.1"
     }
   ]
 }
