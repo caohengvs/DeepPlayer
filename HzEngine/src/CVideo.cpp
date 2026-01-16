@@ -14,22 +14,12 @@ extern "C"
 #include <sstream>
 CVideo::CVideo()
 {
-    for (auto& it : m_arrPkt)
-    {
-        auto* pkt = av_packet_alloc();
-        it = pkt;
-    }
     m_pFrame = av_frame_alloc();
     m_pFrameRGB = av_frame_alloc();
 }
 
 CVideo::~CVideo()
 {
-    for (auto it : m_arrPkt)
-    {
-        av_packet_free(&it);
-    }
-
     while (!m_queFrame.empty())
     {
         AVFrame* frame = m_queFrame.front();
@@ -63,9 +53,9 @@ void CVideo::Flush()
         {
             break;
         }
-        SwsContext* sws_ctx = sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format,  // 源
-                                             m_pFrame->width, m_pFrame->height, AV_PIX_FMT_RGB24,  // 目标
-                                             SWS_BILINEAR, NULL, NULL, NULL);
+        SwsContext* sws_ctx =
+            sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format, m_pFrame->width,
+                           m_pFrame->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
         m_pFrameRGB->format = AV_PIX_FMT_RGB24;
         m_pFrameRGB->width = m_pFrame->width;
         m_pFrameRGB->height = m_pFrame->height;
@@ -90,13 +80,12 @@ void CVideo::Decode(AVPacket* packet)
         ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
         {
-            // 数据不足
             break;
         }
 
-        SwsContext* sws_ctx = sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format,  // 源
-                                             m_pFrame->width, m_pFrame->height, AV_PIX_FMT_RGB24,  // 目标
-                                             SWS_BILINEAR, NULL, NULL, NULL);
+        SwsContext* sws_ctx =
+            sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format, m_pFrame->width,
+                           m_pFrame->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
 
         m_pFrameRGB->format = AV_PIX_FMT_RGB24;
         m_pFrameRGB->width = m_pFrame->width;
@@ -110,13 +99,10 @@ void CVideo::Decode(AVPacket* packet)
         pFrameRGB->width = m_pFrameRGB->width;
         pFrameRGB->height = m_pFrameRGB->height;
 
-        // 分配新内存
         av_frame_get_buffer(pFrameRGB, 0);
 
-        // 物理拷贝像素数据
         av_frame_copy(pFrameRGB, m_pFrameRGB);
 
-        // 现在 pFrameRGB 是一个完全独立的副本
         {
             std::lock_guard<std::mutex> lock(m_mtxPkt);
             m_queFrame.push(pFrameRGB);

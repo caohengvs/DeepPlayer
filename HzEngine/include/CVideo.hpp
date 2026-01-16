@@ -31,9 +31,6 @@ private:
     AVStream* m_pStream{nullptr};
     int m_nStreamIndex{-1};
 
-    std::array<AVPacket*, 1024 * 1024> m_arrPkt;
-    uint8_t m_nWriteIndex{0};
-    uint8_t m_nReadIndex{0};
     std::thread m_thdDecode;  // 解码线程
 
     std::mutex m_mtxPkt;
