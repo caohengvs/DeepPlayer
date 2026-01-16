@@ -43,11 +43,13 @@ public:
     bool Init(std::string_view filename);
     void Pause();
     void Stop();
-    void SeekPos(float position);
+    void Seek(double seconds);
     void SetVolume(float volume);
     void SetSpeed(float speed);
     void SetLoop(bool loop);
     HzFrame GetFrame();
+    double GetCurrentTime();
+
 
 private:
     CMedia* m_pMedia{nullptr};

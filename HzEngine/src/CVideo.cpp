@@ -37,7 +37,7 @@ CVideo::~CVideo()
     av_frame_free(&m_pFrameRGB);
 }
 
-void CVideo::Clear()
+void CVideo::FreeCtx()
 {
     avcodec_free_context(&m_pCodecCtx);
 }
@@ -68,7 +68,7 @@ void CVideo::Flush()
     }
 }
 
-void CVideo::Decode(AVPacket* packet)
+void CVideo::Decode(AVPacket* packet, int64_t targetPts)
 {
     int ret = 0;
 
@@ -81,6 +81,11 @@ void CVideo::Decode(AVPacket* packet)
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
         {
             break;
+        }
+        if (m_pFrame->pts < targetPts)
+        {
+            // 这属于 Seek 后的补偿帧，直接丢弃，不放入 m_queFrame
+            continue;
         }
 
         SwsContext* sws_ctx =
@@ -109,11 +114,18 @@ void CVideo::Decode(AVPacket* packet)
         }
         m_cvFrame.notify_one();
 
+        // 获取当前pts
+        int64_t pts = (m_pFrame->pts != AV_NOPTS_VALUE) ? m_pFrame->pts : m_pFrame->pkt_dts;
+
+        if (pts < 0)
+            pts = 0;
+
+        m_nCurrentPts = pts;
+
         av_frame_unref(m_pFrameRGB);
 
         av_frame_unref(m_pFrame);
     }
-    av_packet_unref(pkt);
 }
 
 AVFrame* CVideo::GetFrame()
@@ -125,5 +137,26 @@ AVFrame* CVideo::GetFrame()
 
     auto* frame = m_queFrame.front();
     m_queFrame.pop();
+
     return frame;
+}
+
+void CVideo::ClearCache()
+{
+    std::lock_guard<std::mutex> lock(m_mtxPkt);
+    while (!m_queFrame.empty())
+    {
+        AVFrame* frame = m_queFrame.front();
+        m_queFrame.pop();
+
+        if (frame != nullptr)
+        {
+            av_frame_free(&frame);
+        }
+    }
+}
+
+double CVideo::GetCurrentPts()
+{
+    return m_nCurrentPts;
 }

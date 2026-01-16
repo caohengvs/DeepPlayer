@@ -6,7 +6,6 @@
 #include <queue>
 #include <thread>
 
-
 class AVCodecContext;
 class AVStream;
 class AVPacket;
@@ -20,11 +19,13 @@ public:
     ~CVideo();
 
 public:
-    void Clear();
+    void FreeCtx();
     void Flush();
-    void Decode(AVPacket* pPacket);
+    void Decode(AVPacket* pPacket, int64_t targetPts);
 
     AVFrame* GetFrame();
+    void ClearCache();
+    double GetCurrentPts();
 
 private:
     AVCodecContext* m_pCodecCtx{nullptr};
@@ -40,4 +41,5 @@ private:
     AVFrame* m_pFrameRGB{nullptr};
     std::queue<AVFrame*> m_queFrame;
     std::atomic<bool> m_bRun{true};
+    std::atomic<int64_t> m_nCurrentPts{0};
 };

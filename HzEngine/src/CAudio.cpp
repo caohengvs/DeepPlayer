@@ -16,7 +16,7 @@ CAudio::~CAudio()
 {
 }
 
-void CAudio::Clear()
+void CAudio::FreeCtx()
 {
     avcodec_free_context(&m_pCodecCtx);
 }

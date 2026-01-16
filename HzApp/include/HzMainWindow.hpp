@@ -2,12 +2,12 @@
 #include <QMainWindow>
 #include <QObject>
 #include <thread>
-#include "HzEngine.hpp"
-
 #include <QImage>
 #include <QMutex>
 #include <QPainter>
 #include <QWidget>
+#include <QKeyEvent>
+#include "HzEngine.hpp"
 
 class HzVideoWidget : public QWidget
 {
@@ -62,6 +62,9 @@ public:
 
 private:
     void display();
+
+protected:
+    void keyPressEvent(QKeyEvent* event) override;
 
 signals:
     void updateImage(const QImage& img);

@@ -14,7 +14,7 @@ public:
     ~CAudio();
 
 public:
-    void Clear();
+    void FreeCtx();
 
 private:
     AVCodecContext* m_pCodecCtx{nullptr};

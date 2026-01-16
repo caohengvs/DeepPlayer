@@ -74,8 +74,8 @@ int CMedia::Open(std::string_view path)
     if (!m_pVideo->m_pCodecCtx && !m_pAudio->m_pCodecCtx)
     {
         LOG_ERROR << "Could not find audio or video stream in the input, aborting";
-        m_pVideo->Clear();
-        m_pAudio->Clear();
+        m_pVideo->FreeCtx();
+        m_pAudio->FreeCtx();
         return -1;
     }
 
@@ -130,18 +130,52 @@ int CMedia::open_codec_context(int* stream_idx, AVCodecContext** dec_ctx, AVForm
 
 void CMedia::decode()
 {
-    while (av_read_frame(m_pFmtCtx, m_pPkt) >= 0 && m_bRun)
+    while (m_bRun)
     {
-        if (m_pPkt->stream_index == m_pVideo->m_nStreamIndex)
+        while (m_bRun)
         {
-            m_pVideo->Decode(m_pPkt);
-        }
-        else if (m_pPkt->stream_index == m_pAudio->m_nStreamIndex)
-        {
-            // m_pAudio->decode(m_pPacket);
+            if (m_bSeeking)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                continue;
+            }
+
+            std::lock_guard<std::mutex> lock(m_mtxSeek);
+            if (av_read_frame(m_pFmtCtx, m_pPkt) >= 0)
+            {
+                if (m_pPkt->stream_index == m_pVideo->m_nStreamIndex)
+                {
+                    m_pVideo->Decode(m_pPkt, m_nTargetPts);
+                }
+                av_packet_unref(m_pPkt);
+            }
         }
     }
-    m_pVideo->Flush();
+}
+
+void CMedia::Seek(double seconds)
+{
+    m_bSeeking = true;
+    {
+        std::lock_guard<std::mutex> lock(m_mtxSeek);
+
+        // 1. 记录目标时间戳（用于后续精准比对）
+        m_nTargetPts = seconds / av_q2d(m_pFmtCtx->streams[m_pVideo->m_nStreamIndex]->time_base);
+
+        // 2. 跳转到关键帧
+        avformat_seek_file(m_pFmtCtx, m_pVideo->m_nStreamIndex, INT64_MIN, m_nTargetPts, m_nTargetPts,
+                           AVSEEK_FLAG_BACKWARD);
+
+        // 3. 必须：清理外部队列 + 刷洗解码器内部缓存
+        m_pVideo->ClearCache();
+        avcodec_flush_buffers(m_pVideo->m_pCodecCtx);
+    }
+    m_bSeeking = false;
+}
+
+double CMedia::GetCurrentTime()
+{
+    return m_pVideo->GetCurrentPts() * av_q2d(m_pFmtCtx->streams[m_pVideo->m_nStreamIndex]->time_base);
 }
 
 AVFrame* CMedia::GetFrame()

@@ -40,3 +40,15 @@ void HzMainWindow::display()
         emit updateImage(qimg.copy());
     }
 }
+
+void HzMainWindow::keyPressEvent(QKeyEvent* event)
+{
+    const double step = 2.0; 
+
+    if (event->key() == Qt::Key_Right) {
+        m_engine.Seek(m_engine.GetCurrentTime() + step);
+    }
+    else if (event->key() == Qt::Key_Left) {
+        m_engine.Seek(m_engine.GetCurrentTime()-step);
+    }
+}

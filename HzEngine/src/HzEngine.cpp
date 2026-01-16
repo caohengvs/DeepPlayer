@@ -39,8 +39,9 @@ void HzEngine::Stop()
     m_pMedia = nullptr;
 }
 
-void HzEngine::SeekPos(float position)
+void HzEngine::Seek(double seconds)
 {
+    m_pMedia->Seek(seconds);
 }
 
 void HzEngine::SetVolume(float volume)
@@ -74,4 +75,9 @@ HzFrame HzEngine::GetFrame()
 
     av_frame_free(&pFrame);
     return m_Frame;
+}
+
+double HzEngine::GetCurrentTime()
+{
+    return m_pMedia->GetCurrentTime();
 }

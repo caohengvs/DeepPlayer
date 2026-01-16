@@ -8,8 +8,10 @@ extern "C"
 }
 
 #include <atomic>
+#include <mutex>
 #include <string>
 #include <thread>
+
 
 class CVideo;
 class CAudio;
@@ -27,6 +29,9 @@ public:
 public:
     int Open(std::string_view path);
     AVFrame* GetFrame();
+    void Seek(double seconds);
+
+    double GetCurrentTime();
 
 private:
     int open_codec_context(int* stream_idx, AVCodecContext** dec_ctx, AVFormatContext* fmt_ctx, AVMediaType type);
@@ -39,4 +44,7 @@ private:
     AVPacket* m_pPkt{nullptr};
     std::thread m_thdDecode;
     std::atomic<bool> m_bRun{false};
+    std::atomic<bool> m_bSeeking{false};
+    std::mutex m_mtxSeek;
+    int m_nTargetPts{0};
 };
