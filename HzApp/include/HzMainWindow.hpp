@@ -9,7 +9,6 @@
 #include <QPainter>
 #include <QWidget>
 
-
 class HzVideoWidget : public QWidget
 {
     Q_OBJECT

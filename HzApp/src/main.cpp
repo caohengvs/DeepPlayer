@@ -15,6 +15,6 @@ int main(int argc, char* argv[])
 
     // mainWindow.raise();           // 拿到最前
     // mainWindow.activateWindow();  // 抢焦点
-    
+
     return app.exec();
 }

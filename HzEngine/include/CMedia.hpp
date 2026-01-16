@@ -7,9 +7,10 @@ extern "C"
 #pragma warning(pop)
 }
 
+#include <atomic>
 #include <string>
 #include <thread>
-#include <atomic>
+
 class CVideo;
 class CAudio;
 class AVFormatContext;

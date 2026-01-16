@@ -3,9 +3,10 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include "HzEngine.hpp"
 #include "HzLogger.hpp"
 #include "HzUtils.hpp"
-#include "HzEngine.hpp"
+
 
 HzApp::HzApp(int& argc, char** argv)
     : QApplication(argc, argv)
