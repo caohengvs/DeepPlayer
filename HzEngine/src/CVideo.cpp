@@ -84,7 +84,6 @@ void CVideo::Decode(AVPacket* packet, int64_t targetPts)
         }
         if (m_pFrame->pts < targetPts)
         {
-            // 这属于 Seek 后的补偿帧，直接丢弃，不放入 m_queFrame
             continue;
         }
 
@@ -114,7 +113,6 @@ void CVideo::Decode(AVPacket* packet, int64_t targetPts)
         }
         m_cvFrame.notify_one();
 
-        // 获取当前pts
         int64_t pts = (m_pFrame->pts != AV_NOPTS_VALUE) ? m_pFrame->pts : m_pFrame->pkt_dts;
 
         if (pts < 0)

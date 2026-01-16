@@ -159,14 +159,11 @@ void CMedia::Seek(double seconds)
     {
         std::lock_guard<std::mutex> lock(m_mtxSeek);
 
-        // 1. 记录目标时间戳（用于后续精准比对）
         m_nTargetPts = seconds / av_q2d(m_pFmtCtx->streams[m_pVideo->m_nStreamIndex]->time_base);
 
-        // 2. 跳转到关键帧
         avformat_seek_file(m_pFmtCtx, m_pVideo->m_nStreamIndex, INT64_MIN, m_nTargetPts, m_nTargetPts,
                            AVSEEK_FLAG_BACKWARD);
 
-        // 3. 必须：清理外部队列 + 刷洗解码器内部缓存
         m_pVideo->ClearCache();
         avcodec_flush_buffers(m_pVideo->m_pCodecCtx);
     }
