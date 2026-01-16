@@ -7,7 +7,8 @@
     "spdlog",
     "gtest",
     "magic-enum",
-    "ffmpeg"
+    "ffmpeg",
+    "opencv"
   ],
   "overrides": [
     {
@@ -21,6 +22,10 @@
     {
       "name": "ffmpeg",
       "version":"7.1"
+    },
+    {
+      "name": "opencv",
+      "version": "4.11.0"
     }
   ]
 }

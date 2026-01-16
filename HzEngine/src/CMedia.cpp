@@ -1,8 +1,7 @@
+#include "CMedia.hpp"
 #include "CAudio.hpp"
 #include "CVideo.hpp"
 #include "HzLogger.hpp"
-#include "CMedia.hpp"
-
 extern "C"
 {
 #pragma warning(push)
@@ -51,6 +50,15 @@ int CMedia::Open(std::string_view path)
                                   AVMEDIA_TYPE_VIDEO)) >= 0)
     {
         m_pVideo->m_pStream = m_pFmtCtx->streams[m_pVideo->m_nStreamIndex];
+
+        AVRational fps_rational = m_pVideo->m_pStream->avg_frame_rate;
+
+        double fps = 0;
+        if (fps_rational.den > 0)
+        {
+            fps = av_q2d(fps_rational);
+        }
+        LOG_INFO << "fps:" << fps;
     }
 
     // find audio stream
@@ -65,12 +73,11 @@ int CMedia::Open(std::string_view path)
         // goto end;
     }
 
-    // 开启解包
     m_thdDecode = std::thread(&CMedia::decode, this);
 
-// end:
-//     m_pVideo->Clear();
-//     m_pAudio->Clear();
+    // end:
+    //     m_pVideo->Clear();
+    //     m_pAudio->Clear();
 
     return ret;
 }
@@ -124,12 +131,19 @@ void CMedia::decode()
     {
         if (m_pPkt->stream_index == m_pVideo->m_nStreamIndex)
         {
-            m_pVideo->Append(m_pPkt);
+            m_pVideo->Decode(m_pPkt);
         }
         else if (m_pPkt->stream_index == m_pAudio->m_nStreamIndex)
         {
             // m_pAudio->decode(m_pPacket);
         }
-        
     }
+    m_pVideo->Flush();
+
+    // m_pVideo->Append(nullptr);
+}
+
+AVFrame* CMedia::GetFrame()
+{
+    return m_pVideo->GetFrame();
 }

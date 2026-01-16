@@ -1,5 +1,13 @@
 #include "HzEngine.hpp"
 #include "CMedia.hpp"
+extern "C"
+{
+#pragma warning(push)
+#pragma warning(disable : 4819)
+#include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
+#pragma warning(pop)
+}
 
 HzEngine::HzEngine()
 {
@@ -41,4 +49,26 @@ void HzEngine::SetSpeed(float speed)
 
 void HzEngine::SetLoop(bool loop)
 {
+}
+
+HzFrame HzEngine::GetFrame()
+{
+    auto* pFrame = m_pMedia->GetFrame();
+    if(pFrame == nullptr)
+    {
+        return HzFrame();
+    }
+    m_Frame.clear();
+    m_Frame.width = pFrame->width;
+    m_Frame.height = pFrame->height;
+    m_Frame.linesize = pFrame->linesize[0];
+    int size = av_image_get_buffer_size((AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, 1);
+
+    m_Frame.data = (uint8_t*)malloc(size);
+    av_image_copy_to_buffer(m_Frame.data, size, pFrame->data, pFrame->linesize, (AVPixelFormat)pFrame->format,
+                            pFrame->width, pFrame->height, 1);
+   
+    // delete pFrame;
+    av_frame_free(&pFrame);
+    return m_Frame;
 }

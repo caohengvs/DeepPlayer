@@ -7,8 +7,11 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include <libavcodec/packet.h>
 #include <libavutil/pixdesc.h>
+#include <libswscale/swscale.h>
 #pragma warning(pop)
 }
+#include <opencv4/opencv2/opencv.hpp>
+#include <sstream>
 CVideo::CVideo()
 {
     for (auto& it : m_arrPkt)
@@ -17,35 +20,18 @@ CVideo::CVideo()
         it = pkt;
     }
     m_pFrame = av_frame_alloc();
-    m_bRun = true;
-    m_thdDecode = std::thread(&CVideo::decode, this);
+    m_pFrameRGB = av_frame_alloc();
 }
 
 CVideo::~CVideo()
 {
-    m_bRun = false;
-    m_cvPkt.notify_all();
-
     for (auto it : m_arrPkt)
     {
         av_packet_free(&it);
     }
 
     av_frame_free(&m_pFrame);
-}
-
-void CVideo::Append(AVPacket* packet)
-{
-    if (m_nWriteIndex >= m_arrPkt.size())
-        m_nWriteIndex = 0;
-
-    if (av_packet_ref(m_arrPkt[m_nWriteIndex], packet) < 0)
-    {
-        return;
-    }
-    m_nWriteIndex++;
-
-    m_cvPkt.notify_one();
+    av_frame_free(&m_pFrameRGB);
 }
 
 void CVideo::Clear()
@@ -53,40 +39,91 @@ void CVideo::Clear()
     avcodec_free_context(&m_pCodecCtx);
 }
 
-void CVideo::decode()
+void CVideo::Flush()
 {
     int ret = 0;
-    while (m_bRun)
+    ret = avcodec_send_packet(m_pCodecCtx, nullptr);
+    while (ret >= 0)
     {
-        std::unique_lock<std::mutex> lk(m_mtxPkt);
-        m_cvPkt.wait(lk, [this] { return m_nReadIndex < m_nWriteIndex || !m_bRun; });
-        if (m_nReadIndex > m_arrPkt.size())
-        {
-            m_nReadIndex = 0;
-        }
-
-        if (!m_bRun)
+        ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
         {
             break;
         }
+        SwsContext* sws_ctx = sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format,  // 源
+                                             m_pFrame->width, m_pFrame->height, AV_PIX_FMT_RGB24,  // 目标
+                                             SWS_BILINEAR, NULL, NULL, NULL);
+        m_pFrameRGB->format = AV_PIX_FMT_RGB24;
+        m_pFrameRGB->width = m_pFrame->width;
+        m_pFrameRGB->height = m_pFrame->height;
+        av_frame_get_buffer(m_pFrameRGB, 0);
+        sws_scale(sws_ctx, m_pFrame->data, m_pFrame->linesize, 0, m_pFrame->height, m_pFrameRGB->data,
+                  m_pFrameRGB->linesize);
 
-        auto* pkt = m_arrPkt[m_nReadIndex++];
-        ret = avcodec_send_packet(m_pCodecCtx, pkt);
-
-        while (ret >= 0)
-        {
-            ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
-            {
-                // 数据不足
-                break;
-            }
-            const char* format_name = av_get_pix_fmt_name((AVPixelFormat)m_pFrame->format);
-
-            LOG_INFO << "image formate" << format_name;
-            // LOG_DEBUG << "图像格式：" << format_name << "图像大小：" << m_pFrame->width << "x" << m_pFrame->height;
-            av_frame_unref(m_pFrame);
-        }
-        av_packet_unref(pkt);
+        av_frame_unref(m_pFrameRGB);
+        av_frame_unref(m_pFrame);
     }
+}
+
+void CVideo::Decode(AVPacket* packet)
+{
+    int ret = 0;
+
+    auto* pkt = packet;
+    ret = avcodec_send_packet(m_pCodecCtx, pkt);
+
+    while (ret >= 0)
+    {
+        ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret < 0)
+        {
+            // 数据不足
+            break;
+        }
+
+        SwsContext* sws_ctx = sws_getContext(m_pFrame->width, m_pFrame->height, (AVPixelFormat)m_pFrame->format,  // 源
+                                             m_pFrame->width, m_pFrame->height, AV_PIX_FMT_RGB24,  // 目标
+                                             SWS_BILINEAR, NULL, NULL, NULL);
+
+        m_pFrameRGB->format = AV_PIX_FMT_RGB24;
+        m_pFrameRGB->width = m_pFrame->width;
+        m_pFrameRGB->height = m_pFrame->height;
+        av_frame_get_buffer(m_pFrameRGB, 0);
+        sws_scale(sws_ctx, m_pFrame->data, m_pFrame->linesize, 0, m_pFrame->height, m_pFrameRGB->data,
+                  m_pFrameRGB->linesize);
+
+        AVFrame* pFrameRGB = av_frame_alloc();
+        pFrameRGB->format = m_pFrameRGB->format;
+        pFrameRGB->width = m_pFrameRGB->width;
+        pFrameRGB->height = m_pFrameRGB->height;
+
+        // 分配新内存
+        av_frame_get_buffer(pFrameRGB, 0);
+
+        // 物理拷贝像素数据
+        av_frame_copy(pFrameRGB, m_pFrameRGB);
+
+        // 现在 pFrameRGB 是一个完全独立的副本
+        {
+            std::lock_guard<std::mutex> lock(m_mtxPkt);
+            m_queFrame.push(pFrameRGB);
+        }
+
+        av_frame_unref(m_pFrameRGB);
+
+        av_frame_unref(m_pFrame);
+    }
+    av_packet_unref(pkt);
+}
+
+AVFrame* CVideo::GetFrame()
+{
+    if (m_queFrame.empty())
+    {
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(m_mtxPkt);
+    auto* frame = m_queFrame.front();
+    m_queFrame.pop();
+    return frame;
 }

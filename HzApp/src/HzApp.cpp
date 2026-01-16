@@ -12,8 +12,7 @@ HzApp::HzApp(int& argc, char** argv)
 {
     setApplicationName("DeepPlayer");
     initLogger();
-    HzEngine engine;
-    engine.Init("test.mkv");
+
     qInfo() << "Starting DeepPlayer";
 }
 

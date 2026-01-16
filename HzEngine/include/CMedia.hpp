@@ -14,6 +14,7 @@ class CAudio;
 class AVFormatContext;
 class AVCodecContext;
 class AVPacket;
+class AVFrame;
 
 class CMedia
 {
@@ -23,6 +24,7 @@ public:
 
 public:
     int Open(std::string_view path);
+    AVFrame* GetFrame();
 
 private:
     int open_codec_context(int* stream_idx, AVCodecContext** dec_ctx, AVFormatContext* fmt_ctx, AVMediaType type);
