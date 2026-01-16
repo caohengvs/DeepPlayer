@@ -23,7 +23,6 @@ struct HzFrame
     {
         if (data)
         {
-            // delete[] data;
             free(data);
             data = nullptr;
         }

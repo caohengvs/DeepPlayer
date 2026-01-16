@@ -15,6 +15,7 @@ HzMainWindow::HzMainWindow(QWidget* parent)
 
 HzMainWindow::~HzMainWindow()
 {
+    m_engine.Stop();
     m_bRun = false;
     if (m_thdDisply.joinable())
         m_thdDisply.join();
@@ -37,9 +38,5 @@ void HzMainWindow::display()
             return;
 
         emit updateImage(qimg.copy());
-        // std::stringstream ss;
-        // ss << "test" << nIndex++ << ".jpg";
-        // qimg.save(ss.str().c_str(), "JPG", 90);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }

@@ -30,6 +30,19 @@ CVideo::~CVideo()
         av_packet_free(&it);
     }
 
+    while (!m_queFrame.empty())
+    {
+        AVFrame* frame = m_queFrame.front();
+        m_queFrame.pop();
+
+        if (frame != nullptr)
+        {
+            av_frame_free(&frame);
+        }
+    }
+    m_bRun = false;
+
+    m_cvFrame.notify_all();
     av_frame_free(&m_pFrame);
     av_frame_free(&m_pFrameRGB);
 }
@@ -108,6 +121,7 @@ void CVideo::Decode(AVPacket* packet)
             std::lock_guard<std::mutex> lock(m_mtxPkt);
             m_queFrame.push(pFrameRGB);
         }
+        m_cvFrame.notify_one();
 
         av_frame_unref(m_pFrameRGB);
 
@@ -118,11 +132,11 @@ void CVideo::Decode(AVPacket* packet)
 
 AVFrame* CVideo::GetFrame()
 {
-    if (m_queFrame.empty())
-    {
+    std::unique_lock<std::mutex> lock(m_mtxPkt);
+    m_cvFrame.wait(lock, [this]() { return !m_queFrame.empty() || !m_bRun; });
+    if (!m_bRun)
         return nullptr;
-    }
-    std::lock_guard<std::mutex> lock(m_mtxPkt);
+
     auto* frame = m_queFrame.front();
     m_queFrame.pop();
     return frame;

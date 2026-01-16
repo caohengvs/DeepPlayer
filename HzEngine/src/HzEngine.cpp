@@ -16,6 +16,8 @@ HzEngine::HzEngine()
 
 HzEngine::~HzEngine()
 {
+    if(m_pMedia)
+    delete m_pMedia;
 }
 
 bool HzEngine::Init(std::string_view filename)
@@ -33,6 +35,8 @@ void HzEngine::Pause()
 
 void HzEngine::Stop()
 {
+     delete m_pMedia;
+     m_pMedia = nullptr;
 }
 
 void HzEngine::SeekPos(float position)
@@ -68,7 +72,6 @@ HzFrame HzEngine::GetFrame()
     av_image_copy_to_buffer(m_Frame.data, size, pFrame->data, pFrame->linesize, (AVPixelFormat)pFrame->format,
                             pFrame->width, pFrame->height, 1);
    
-    // delete pFrame;
     av_frame_free(&pFrame);
     return m_Frame;
 }

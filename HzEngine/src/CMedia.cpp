@@ -21,6 +21,10 @@ CMedia::CMedia()
 
 CMedia::~CMedia()
 {
+    m_bRun = false;
+    if (m_thdDecode.joinable())
+        m_thdDecode.join();
+
     if (m_pVideo)
         delete m_pVideo;
 
@@ -70,14 +74,13 @@ int CMedia::Open(std::string_view path)
     if (!m_pVideo->m_pCodecCtx && !m_pAudio->m_pCodecCtx)
     {
         LOG_ERROR << "Could not find audio or video stream in the input, aborting";
-        // goto end;
+        m_pVideo->Clear();
+        m_pAudio->Clear();
+        return -1;
     }
 
+    m_bRun = true;
     m_thdDecode = std::thread(&CMedia::decode, this);
-
-    // end:
-    //     m_pVideo->Clear();
-    //     m_pAudio->Clear();
 
     return ret;
 }
@@ -127,7 +130,7 @@ int CMedia::open_codec_context(int* stream_idx, AVCodecContext** dec_ctx, AVForm
 
 void CMedia::decode()
 {
-    while (av_read_frame(m_pFmtCtx, m_pPkt) >= 0)
+    while (av_read_frame(m_pFmtCtx, m_pPkt) >= 0 && m_bRun)
     {
         if (m_pPkt->stream_index == m_pVideo->m_nStreamIndex)
         {
@@ -139,8 +142,6 @@ void CMedia::decode()
         }
     }
     m_pVideo->Flush();
-
-    // m_pVideo->Append(nullptr);
 }
 
 AVFrame* CMedia::GetFrame()

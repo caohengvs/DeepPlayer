@@ -34,12 +34,13 @@ private:
     uint8_t m_nWriteIndex{0};
     uint8_t m_nReadIndex{0};
     std::thread m_thdDecode;  // 解码线程
-    std::atomic<bool> m_bRun{false};
+  
     std::mutex m_mtxPkt;
-    std::condition_variable m_cvPkt;
+    std::condition_variable m_cvFrame;
 
     AVFrame* m_pFrame{nullptr};
     AVFrame* m_pFrameRGB{nullptr};
     std::queue<AVFrame*> m_queFrame;
+      std::atomic<bool> m_bRun{true};
     
 };

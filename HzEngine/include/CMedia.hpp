@@ -9,6 +9,7 @@ extern "C"
 
 #include <string>
 #include <thread>
+#include <atomic>
 class CVideo;
 class CAudio;
 class AVFormatContext;
@@ -28,12 +29,13 @@ public:
 
 private:
     int open_codec_context(int* stream_idx, AVCodecContext** dec_ctx, AVFormatContext* fmt_ctx, AVMediaType type);
-    void decode(); 
+    void decode();
 
 private:
     CVideo* m_pVideo{nullptr};
     CAudio* m_pAudio{nullptr};
     AVFormatContext* m_pFmtCtx{nullptr};
     AVPacket* m_pPkt{nullptr};
-    std::thread m_thdDecode; 
+    std::thread m_thdDecode;
+    std::atomic<bool> m_bRun{false};
 };
